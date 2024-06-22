@@ -4,7 +4,7 @@
 #include <utility>
 
 template <typename T>
-struct Matrix {
+class Matrix {
 public:
     Matrix(size_t columnsCount, size_t rowsCount) : columnsCount(columnsCount), rowsCount(rowsCount) {
         this->data = std::vector<std::vector<T>>(columnsCount);
@@ -85,18 +85,19 @@ public:
         static_assert(std::is_floating_point<T>::value);
     }
 
-    T* convertToArray(void) const {
-        return reinterpret_cast<T*>(this);
-    }
-
-    virtual size_t getLength(void) const = 0;
-
-    friend std::ostream& operator<<(std::ostream& ostream, const VectorBase& vector) {
-        for (size_t i = 0; i < this->getLength(); i++) {
-            ostream << this->convertToArray()[i] << " | ";
+    friend std::ostream& operator<<(std::ostream& ostream, VectorBase& vector) {
+        T* array = vector.convertToArray();
+        for (size_t i = 0; i < vector.getLength(); i++) {
+            ostream << array[i] << " | ";
         }
         return ostream;
     }
+
+    T* convertToArray(void) {
+        return reinterpret_cast<T*>(this + 1);
+    }
+
+    virtual size_t getLength(void) const = 0;
 };
 
 template <typename T>
@@ -104,22 +105,28 @@ class Vector2D : public VectorBase<T> {
 public:
     Vector2D(T x, T y) : x(x), y(y), VectorBase<T>() {}
 
-    size_t getLength(void) const { return 2; }
+    size_t getLength(void) const override { return 2; }
 
 private:
     T x, y;
 };
 
 template <typename T>
-class Vector3D : public Vector2D<T> {
+class Vector3D : public VectorBase<T> {
 public:
-    Vector3D(T x, T y, T z) : z(z), Vector2D() {}
+    Vector3D(T x, T y, T z) : x(x), y(y), z(z), VectorBase<T>() {}
 
-    size_t getLength(void) const { return 3; }
+    size_t getLength(void) const override { return 3; }
 
 private:
     T x, y, z;
 };
+
+template <typename T>
+using ProjectionMatrix = Matrix<T>;
+
+template <typename T>
+using RotationXMatrix = Matrix<T>;
 
 namespace GeometryFunctions {
     
@@ -139,14 +146,11 @@ namespace Tools {
 };
 
 int main(int argc, char* argv[]) {
-    BinarySerializer serializer("./serialized.bin");
-    Tools::print(" | ", "\n", 4, 5, 3, 4, "Hello world", "bye bye", 434.5);
+    Matrix<double> projectionMatrix(4, 4);
+    Vector2D vector_1(43.43, 34.43), vector_2(21.2, 34.2), vector_3(1.2, 34.23);
+    Vector3D vector3D(32.34, 1.34, 4.43);
 
-    Vector2D<double> vector(45.4, 56.45);
-    Vector2D<double> vector_2(3.4, 23.434);
-    Vector2D<double> vector_3(56.4, 3.233);
-
-    Tools::print("\n", "\n", vector, vector_2, vector_3);
+    Tools::print("\n", "\n", vector_1, vector_2, vector_3, vector3D);
 
     return 0;
 }
