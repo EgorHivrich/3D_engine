@@ -6,9 +6,10 @@
 template <typename T>
 class Matrix {
 public:
-    Matrix(size_t columnsCount, size_t rowsCount) : columnsCount(columnsCount), rowsCount(rowsCount) {
-        this->data = std::vector<std::vector<T>>(columnsCount);
+    Matrix(size_t columnsCount, size_t rowsCount)
+      : columnsCount(columnsCount), rowsCount(rowsCount), data(std::vector<std::vector<T>>(columnsCount)) {
         std::fill(this->data.begin(), this->data.end(), std::vector<T>(rowsCount));
+        static_assert(std::is_floating_point<T>::value);
     }
 
     size_t getColumnsCount(void) const {
@@ -20,10 +21,10 @@ public:
     }
 
     decltype(auto) operator[](this auto&& self, size_t index) {
-        if (index < 0 || index >= this->columnsCount) {
+        if (index < 0 || index >= self.columnsCount) {
             std::cerr << "index out of range (Matrix)" << std::endl;
         }
-        return std::forward_like<decltype(self)>(this->data[index]);
+        return std::forward_like<decltype(self)>(self.data[index]);
     }
 
 private:
@@ -33,8 +34,8 @@ private:
 
 class BinarySerializer {
 public:
-    BinarySerializer(const std::string& filePath)
-        : file(filePath, std::ios_base::in | std::ios_base::binary | std::ios_base::out) {}
+    BinarySerializer(const std::string& filePath) 
+      : file(filePath, std::ios_base::in | std::ios_base::binary | std::ios_base::out) {}
 
     template <typename T, typename... Args>
     void serialize(T first, Args... args) {
@@ -103,7 +104,8 @@ public:
 template <typename T>
 class Vector2D : public VectorBase<T> {
 public:
-    Vector2D(T x, T y) : x(x), y(y), VectorBase<T>() {}
+    Vector2D(T x, T y)
+      : x(x), y(y), VectorBase<T>() {}
 
     size_t getLength(void) const override { return 2; }
 
@@ -114,7 +116,8 @@ private:
 template <typename T>
 class Vector3D : public VectorBase<T> {
 public:
-    Vector3D(T x, T y, T z) : x(x), y(y), z(z), VectorBase<T>() {}
+    Vector3D(T x, T y, T z) 
+      : x(x), y(y), z(z), VectorBase<T>() {}
 
     size_t getLength(void) const override { return 3; }
 
@@ -146,7 +149,7 @@ namespace Tools {
 };
 
 int main(int argc, char* argv[]) {
-    Matrix<double> projectionMatrix(4, 4);
+    const Matrix<double> projectionMatrix(4, 4);
     Vector2D vector_1(43.43, 34.43), vector_2(21.2, 34.2), vector_3(1.2, 34.23);
     Vector3D vector3D(32.34, 1.34, 4.43);
 
